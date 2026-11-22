@@ -28,8 +28,7 @@ def get_daily_demand(df):
         (df["UnitPrice"] > 0)
     ]
 
-    # Remove missing Customer IDs
-    df = df.dropna(subset=["CustomerID"])
+    
 
     # Extract date
     df["date"] = df["InvoiceDate"].dt.normalize()
@@ -70,3 +69,79 @@ def create_features(df):
     df = df.dropna()
 
     return df
+def create_product_features(df):
+
+    df = df.copy()
+
+    # Remove invalid transactions
+    df = df[
+        (df["Quantity"] > 0) &
+        (df["UnitPrice"] > 0)
+    ]
+
+    # Group demand by product and date
+    df["date"] = df["InvoiceDate"].dt.normalize()
+
+    daily = (
+        df.groupby(["StockCode", "date"])["Quantity"]
+        .sum()
+        .reset_index()
+        .sort_values(["StockCode", "date"])
+    )
+
+    # Create product-wise features
+    daily["day_of_week"] = daily["date"].dt.dayofweek
+    daily["month"] = daily["date"].dt.month
+
+    daily["lag_7"] = (
+        daily.groupby("StockCode")["Quantity"].shift(7)
+    )
+
+    daily["rolling_mean_7"] = (
+        daily.groupby("StockCode")["Quantity"]
+        .transform(lambda x: x.shift(1).rolling(7).mean())
+    )
+
+    daily = daily.dropna()
+
+    return daily
+def create_product_features(df):
+
+    df = df.copy()
+
+    # Remove cancelled and invalid transactions
+    df = df[
+        (~df["InvoiceNo"].astype(str).str.startswith("C")) &
+        (df["Quantity"] > 0) &
+        (df["UnitPrice"] > 0)
+    ].copy()
+
+    # Extract date
+    df["date"] = df["InvoiceDate"].dt.normalize()
+
+    # Aggregate demand product-wise
+    daily = (
+        df.groupby(["StockCode", "date"])["Quantity"]
+        .sum()
+        .reset_index()
+        .sort_values(["StockCode", "date"])
+    )
+
+    daily.rename(columns={"Quantity": "sales"}, inplace=True)
+
+    # Create product-wise features
+    daily["day_of_week"] = daily["date"].dt.dayofweek
+    daily["month"] = daily["date"].dt.month
+
+    daily["lag_7"] = (
+        daily.groupby("StockCode")["sales"].shift(7)
+    )
+
+    daily["rolling_mean_7"] = (
+        daily.groupby("StockCode")["sales"]
+        .transform(lambda x: x.shift(1).rolling(7).mean())
+    )
+
+    daily = daily.dropna().reset_index(drop=True)
+
+    return daily

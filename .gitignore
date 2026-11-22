@@ -1,7 +1,37 @@
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Python cache files
 __pycache__/
 *.py[cod]
-.venv/
-venv/
+*$py.class
+
+# Environment variables and secrets
 .env
+.env.*
+!.env.example
+
+# Jupyter Notebook
 .ipynb_checkpoints/
+
+# Dataset (large file)
+data/data.csv
+
+# Logs
+*.log
+
+# OS generated files
 .DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE settings
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.bak
