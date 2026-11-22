@@ -1,4 +1,4 @@
-
+from routes.forecast import router as forecast_router
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -7,6 +7,7 @@ app = FastAPI(
     description="Smart Demand and Supply Prediction System",
     version="1.0.0"
 )
+app.include_router(forecast_router)
 
 # Allow frontend to communicate with backend
 app.add_middleware(
